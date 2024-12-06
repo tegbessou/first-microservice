@@ -1,0 +1,38 @@
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./docker/nginx-proxy/cert/:/etc/nginx/certs/
+    networks:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+
+  php:
+    build: ./docker/php
+    restart: on-failure
+    volumes:
+      - .:/home/app
+      - ./docker/php/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - web
+    tty: true
+    external_links:
+      - nginx-proxy:first-microservice.docker
+    environment:
+      VIRTUAL_HOST: first-microservice.docker
+      VIRTUAL_PORT: 8080
+      CERT_NAME: default
+    expose:
+      - "8080"
+
+networks:
+  web:
+
+volumes:
+  caddy_data:
+  caddy_config:
