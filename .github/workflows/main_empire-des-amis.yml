@@ -22,14 +22,24 @@ jobs:
           php-version: '8.3'
 
       - name: Check if composer.json exists
-        id: check_files
+        id: check_files_composer
         uses: andstor/file-existence-action@v1
         with:
           files: 'composer.json'
 
       - name: Run composer install if composer.json exists
-        if: steps.check_files.outputs.files_exists == 'true'
-        run: composer validate --no-check-publish && composer install --prefer-dist --no-progress
+        if: steps.check_files_composer.outputs.files_exists == 'true'
+        run: composer validate --no-check-publish && composer install --prefer-dist --no-progress --no-dev --optimize-autoloader
+
+      - name: Check if .env.prod exists
+        id: check_files_dot_env_prod
+        uses: andstor/file-existence-action@v1
+        with:
+          files: '.env.prod'
+
+      - name: Setup .env
+        if: steps.check_files_dot_env_prod.outputs.files_exists == 'true'
+        run: cp .env.prod .env && composer symfony:dump-env prod
 
       - name: Zip artifact for deployment
         run: zip release.zip ./* -r
