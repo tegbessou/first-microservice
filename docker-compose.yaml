@@ -30,6 +30,26 @@ services:
     expose:
       - "8080"
 
+  db:
+    image: mariadb:10.11
+    command: --default-authentication-plugin=mysql_native_password
+    restart: on-failure
+    volumes:
+      - .:/home/app
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+      - web
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    networks:
+      - web
+    environment:
+      VIRTUAL_HOST: rabbitmq.first-microservice.docker
+      VIRTUAL_PORT: 15672
+      CERT_NAME: default
+
 networks:
   web:
 
